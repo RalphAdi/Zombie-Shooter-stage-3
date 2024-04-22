@@ -7,10 +7,16 @@ var heart1Img, heart2Img, heart3Img;
 
 var zombieGroup;
 
+var score = 0;
+var life = 3;
 var bullets = 70;
+
+
 
 var gameState = "fight"
 
+var lose, winning, explosionSound,
+  
 
 function preload(){
   
@@ -24,6 +30,10 @@ function preload(){
   zombieImg = loadImage("assets/zombie.png")
 
   bgImg = loadImage("assets/bg.jpeg")
+
+  lose = loadSound("assets/lose.mp3")
+  winning = loadSound("assets/win.mp3")
+  explosionSound = loadSound("assets/explosion.mp3")
 
 }
 
@@ -76,6 +86,36 @@ function draw() {
 
 if(gameState === "fight"){
 
+  //displaying the appropriate image according to lives remaining
+  if(life===3){
+    heart3.visible = true
+    heart2.visible = false
+    heart1.visible = false
+  }
+  if(life===2){
+    heart2.visible = true
+    heart1.visible = false
+    heart3.visible = false
+  }
+  if(life===1){
+    heart1.visible = true
+    heart3.visible = false
+    heart2.visible = false
+  }
+
+  //go to gameState "lost" when 0 lives are remaining
+   if(life===0){
+     gameState = "lost"
+     
+   }
+
+  
+  //go to gameState "won" if score is 100
+  if(score==100){
+    gameState = "won"
+    winning.play();
+  }
+  
   //moving the player up and down and making the game mobile compatible using touches
 if(keyDown("UP_ARROW")||touches.length>0){
   player.y = player.y-30
@@ -95,6 +135,7 @@ if(keyWentDown("space")){
   player.depth = player.depth+2
   player.addImage(shooter_shooting)
   bullets = bullets-1
+  explosionSound.play();
 }
 
 //player goes back to original standing image once we stop pressing the space bar
@@ -105,6 +146,7 @@ else if(keyWentUp("space")){
 //go to gameState "bullet" when player runs out of bullets
 if(bullets==0){
   gameState = "bullet"
+  lose.play();
     
 }
 
@@ -115,7 +157,9 @@ if(zombieGroup.isTouching(bulletGroup)){
    if(zombieGroup[i].isTouching(bulletGroup)){
         zombieGroup[i].destroy()
         bulletGroup.destroyEach()
-       
+     
+
+        score = score+2   
         } 
   
   }
@@ -124,11 +168,16 @@ if(zombieGroup.isTouching(bulletGroup)){
 //destroy zombie when player touches it
 if(zombieGroup.isTouching(player)){
 
+  lose.play();
+
  for(var i=0;i<zombieGroup.length;i++){     
       
   if(zombieGroup[i].isTouching(player)){
        zombieGroup[i].destroy()
-       } 
+       
+  
+       life=life-1
+       }  
  
  }
 }
@@ -137,8 +186,18 @@ if(zombieGroup.isTouching(player)){
 enemy();
 }
 
+
+
+  
 drawSprites();
 
+//displaying the score and remaining lives and bullets
+textSize(20)
+  fill("white")
+text("Bullets = " + bullets,displayWidth-210,displayHeight/2-250)
+text("Score = " + score,displayWidth-200,displayHeight/2-220)
+text("Lives = " + life,displayWidth-200,displayHeght/2-280)
+  
 //destroy zombie and player and display a message in gameState "lost"
 if(gameState == "lost"){
   
